@@ -44,6 +44,7 @@ async function handleGetLocation(request) {
 }
 
 function getParameterByName(name, url) {
+	// eslint-disable-next-line no-useless-escape
 	name = name.replace(/[\[\]]/g, '\\$&');
 	// eslint-disable-next-line prefer-template
 	var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
