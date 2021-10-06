@@ -96,6 +96,7 @@ async function handleLatestVersion(request) {
 	return new Response(JSON.stringify({
 		success: true,
 		message: latestVersion,
+		branch,
 		newer: latestVersion > version
 	}), {
 		headers: {
