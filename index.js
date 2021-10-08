@@ -19,7 +19,8 @@ async function handleRequest(request) {
 	var routes = {
 		'/get-location': handleGetLocation,
 		'/update-version': handleUpdateVersion,
-		'/latest-version': handleLatestVersion
+		'/latest-version': handleLatestVersion,
+		'/latest-download': handleLatestDownload
 	};
 
 	if (Object.keys(routes).includes(path)) {
@@ -158,6 +159,12 @@ async function handleUpdateVersion(request) {
 			break;
 	}
 
+	const url = new URL(request.url);
+	const CACHE_URL = `https://${url.hostname}/download-version`;
+	const cache = caches.default;
+
+	cache.delete(CACHE_URL);
+
 	return new Response(JSON.stringify({
 		success: true,
 		message: 'Version updated'
@@ -166,4 +173,57 @@ async function handleUpdateVersion(request) {
 			'content-type': 'application/json;charset=UTF-8'
 		}
 	});
+}
+
+async function handleLatestDownload(request) {
+	const url = new URL(request.url);
+	const CACHE_URL = `https://${url.hostname}/download-version`;
+	const cache = caches.default;
+
+	let response = await cache.match(CACHE_URL);
+
+	if (!response) {
+		// eslint-disable-next-line no-undef
+		var allVersions = await FRAMEDKV.get('all-versions');
+		var branchVersions = {
+			beta: [],
+			stable: []
+		};
+		var useBranch = 'stable';
+
+		if (!allVersions) {
+			allVersions = {};
+		} else {
+			allVersions = JSON.parse(allVersions);
+		}
+
+		for (var version in allVersions) {
+			branchVersions[allVersions[version]].push(version);
+		}
+
+		branchVersions.beta.sort();
+		branchVersions.stable.sort();
+
+		useBranch = branchVersions.stable.length > 0 ? 'stable' : 'beta';
+
+		if (branchVersions[useBranch].length === 0) {
+			return createErrorResponse('No versions exist');
+		}
+
+		var returnVersion = branchVersions[useBranch][branchVersions[useBranch].length - 1];
+
+		response = new Response(JSON.stringify({
+			success: returnVersion ? true : false,
+			version: returnVersion,
+			branch: useBranch
+		}), {
+			headers: {
+				'content-type': 'application/json;charset=UTF-8'
+			}
+		});
+
+		cache.put(CACHE_URL, response.clone());
+	}
+
+	return response;
 }
