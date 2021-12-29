@@ -120,6 +120,12 @@ async function handleUpdateVersion(request) {
 		return createErrorResponse('Invalid key', 403);
 	}
 
+	var requestData = await request.json();
+	var releaseData = requestData.release;
+	var tag = releaseData.tag_name;
+	var branch = releaseData.prerelease ? 'beta' : 'stable';
+	var regex = /^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9a-zA-Z.]+)?$/;
+
 	if (releaseData.draft) {
 		return new Response(JSON.stringify({
 			success: false,
@@ -130,12 +136,6 @@ async function handleUpdateVersion(request) {
 			}
 		});
 	}
-
-	var requestData = await request.json();
-	var releaseData = requestData.release;
-	var tag = releaseData.tag_name;
-	var branch = releaseData.prerelease ? 'beta' : 'stable';
-	var regex = /^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9a-zA-Z.]+)?$/;
 
 	if (!tag.match(regex)) {
 		return createErrorResponse('Invaild version');
