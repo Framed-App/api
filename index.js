@@ -120,6 +120,17 @@ async function handleUpdateVersion(request) {
 		return createErrorResponse('Invalid key', 403);
 	}
 
+	if (releaseData.draft) {
+		return new Response(JSON.stringify({
+			success: false,
+			message: 'That\'s a draft',
+		}), {
+			headers: {
+				'content-type': 'application/json;charset=UTF-8'
+			}
+		});
+	}
+
 	var requestData = await request.json();
 	var releaseData = requestData.release;
 	var tag = releaseData.tag_name;
