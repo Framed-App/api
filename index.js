@@ -1,5 +1,5 @@
 addEventListener('fetch', event => {
-	event.respondWith(handleRequest(event.request));
+	event.respondWith(handleRequest(event));
 });
 
 function createErrorResponse(message, status = 400) {
@@ -14,7 +14,8 @@ function createErrorResponse(message, status = 400) {
 	});
 }
 
-async function handleRequest(request) {
+async function handleRequest(event) {
+	var request = event.request;
 	var path = new URL(request.url).pathname;
 	var routes = {
 		'/get-location': handleGetLocation,
@@ -25,7 +26,7 @@ async function handleRequest(request) {
 	};
 
 	if (Object.keys(routes).includes(path)) {
-		return routes[path](request);
+		return routes[path](request, event);
 	} else {
 		return createErrorResponse('API route does not exist', 404);
 	}
@@ -188,7 +189,7 @@ async function handleUpdateVersion(request) {
 	});
 }
 
-async function handleLatestDownload(request) {
+async function handleLatestDownload(request, event) {
 	const url = new URL(request.url);
 	const CACHE_URL = `https://${url.hostname}/download-version`;
 	const cache = caches.default;
@@ -236,7 +237,7 @@ async function handleLatestDownload(request) {
 			}
 		});
 
-		cache.put(CACHE_URL, response.clone());
+		event.waitUntil(cache.put(CACHE_URL, response.clone()));
 	}
 
 	return response;
