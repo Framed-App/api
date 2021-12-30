@@ -72,53 +72,64 @@ async function handleLatestVersion(request) {
 		return createErrorResponse('Invalid version');
 	}
 
+	const url = new URL(request.url);
+	const CACHE_URL = `https://${url.hostname}/latest-version?version=${version}`;
 	// eslint-disable-next-line no-undef
-	var allVersions = await FRAMEDKV.get('all-versions');
+	const cache = caches.default;
 
-	if (!allVersions) {
-		return createErrorResponse('No versions exist', 500);
-	} else {
-		allVersions = JSON.parse(allVersions);
-	}
+	let response = await cache.match(CACHE_URL);
 
-	if (!Object.keys(allVersions).includes(version)) {
-		return createErrorResponse('Version does not exist');
-	}
+	if (!response) {
+		// eslint-disable-next-line no-undef
+		var allVersions = await FRAMEDKV.get('all-versions');
 
-	var branch = allVersions[version];
-	var latestVersion = null;
-	var betaHasNewerStable = false;
-
-	switch (branch) {
-		case 'stable':
-			// eslint-disable-next-line no-undef
-			latestVersion = await FRAMEDKV.get('latest-stable');
-			break;
-		case 'beta':
-			// eslint-disable-next-line no-undef
-			latestVersion = await FRAMEDKV.get('latest-beta');
-			if (allVersions[Object.keys(allVersions)[Object.keys(allVersions).length - 1]] === 'stable') {
-				betaHasNewerStable = true;
-				latestVersion = Object.keys(allVersions)[Object.keys(allVersions).length - 1];
-			}
-			break;
-	}
-
-	// eslint-disable-next-line no-undef
-	return new Response(JSON.stringify({
-		success: true,
-		message: latestVersion,
-		branch,
-		newer: latestVersion > version,
-		betaHasNewerStable
-	}), {
-		headers: {
-			'content-type': 'application/json;charset=UTF-8'
+		if (!allVersions) {
+			return createErrorResponse('No versions exist', 500);
+		} else {
+			allVersions = JSON.parse(allVersions);
 		}
-	});
+
+		if (!Object.keys(allVersions).includes(version)) {
+			return createErrorResponse('Version does not exist');
+		}
+
+		var branch = allVersions[version];
+		var latestVersion = null;
+		var betaHasNewerStable = false;
+
+		switch (branch) {
+			case 'stable':
+				// eslint-disable-next-line no-undef
+				latestVersion = await FRAMEDKV.get('latest-stable');
+				break;
+			case 'beta':
+				// eslint-disable-next-line no-undef
+				latestVersion = await FRAMEDKV.get('latest-beta');
+				if (allVersions[Object.keys(allVersions)[Object.keys(allVersions).length - 1]] === 'stable') {
+					betaHasNewerStable = true;
+					latestVersion = Object.keys(allVersions)[Object.keys(allVersions).length - 1];
+				}
+				break;
+		}
+
+		// eslint-disable-next-line no-undef
+		response = new Response(JSON.stringify({
+			success: true,
+			message: latestVersion,
+			branch,
+			newer: latestVersion > version,
+			betaHasNewerStable
+		}), {
+			headers: {
+				'content-type': 'application/json;charset=UTF-8'
+			}
+		});
+	}
+
+	return response;
 }
 
-async function handleUpdateVersion(request) {
+async function handleUpdateVersion(request, event) {
 	if (request.method !== 'POST') {
 		return createErrorResponse('This route only supports POST', 405);
 	}
@@ -177,12 +188,7 @@ async function handleUpdateVersion(request) {
 			break;
 	}
 
-	const url = new URL(request.url);
-	const CACHE_URL = `https://${url.hostname}/download-version`;
-	// eslint-disable-next-line no-undef
-	const cache = caches.default;
-
-	cache.delete(CACHE_URL);
+	event.waitUntil(_callCachePurgeApi());
 
 	// eslint-disable-next-line no-undef
 	return new Response(JSON.stringify({
