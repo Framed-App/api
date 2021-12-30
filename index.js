@@ -265,9 +265,15 @@ async function handleClearCache(request) {
 		return createErrorResponse('Invalid key', 403);
 	}
 
+	var resp = _callCachePurgeApi();
+
+	return resp;
+}
+
+async function _callCachePurgeApi() {
 	// cache.delete() works per datacenter, which is not suitable for cache invalidation
 	// eslint-disable-next-line no-undef
-	var resp = await fetch('https://api.cloudflare.com/client/v4/zones/e26eaf207678247b36fc4e322c276f01/purge_cache', {
+	return fetch('https://api.cloudflare.com/client/v4/zones/e26eaf207678247b36fc4e322c276f01/purge_cache', {
 		method: 'POST',
 		headers: {
 			// eslint-disable-next-line no-undef
@@ -278,16 +284,4 @@ async function handleClearCache(request) {
 			purge_everything: true
 		})
 	});
-
-	return resp;
-
-	// eslint-disable-next-line no-undef
-	/*return new Response(JSON.stringify({
-		success: true,
-		message: 'Cache cleared'
-	}), {
-		headers: {
-			'content-type': 'application/json;charset=UTF-8'
-		}
-	});*/
 }
