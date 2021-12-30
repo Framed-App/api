@@ -274,9 +274,9 @@ async function handleClearCache(request) {
 			Authorization: `Bearer ${CF_AUTH_KEY}`,
 			'Content-Type': 'application/json'
 		},
-		body: {
+		body: JSON.stringify({
 			purge_everything: true
-		}
+		})
 	});
 
 	return resp;
