@@ -134,18 +134,13 @@ async function handleUpdateVersion(request) {
 	var regex = /^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9a-zA-Z.]+)?$/;
 
 	if (releaseData.draft) {
-		return new Response(JSON.stringify({
-			success: false,
-			message: 'That\'s a draft',
-		}), {
-			headers: {
-				'content-type': 'application/json;charset=UTF-8'
-			}
-		});
+		// Return 200 so GitHub Actions don't error
+		// Just need drafts ignored
+		return createErrorResponse('That\'s a draft', 200);
 	}
 
 	if (!tag.match(regex)) {
-		return createErrorResponse('Invaild version');
+		return createErrorResponse('Invalid version');
 	}
 
 	// eslint-disable-next-line no-undef
