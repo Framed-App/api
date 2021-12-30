@@ -95,6 +95,7 @@ async function handleLatestVersion(request) {
 			latestVersion = await FRAMEDKV.get('latest-beta');
 			if (allVersions[Object.keys(allVersions)[Object.keys(allVersions).length - 1]] === 'stable') {
 				betaHasNewerStable = true;
+				latestVersion = Object.keys(allVersions)[Object.keys(allVersions).length - 1];
 			}
 			break;
 	}
