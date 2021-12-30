@@ -271,7 +271,7 @@ async function handleClearCache(request) {
 		method: 'POST',
 		headers: {
 			// eslint-disable-next-line no-undef
-			Authorization: `Bearer: ${CF_AUTH_KEY}`,
+			Authorization: `Bearer ${CF_AUTH_KEY}`,
 			'Content-Type': 'application/json'
 		},
 		body: {
