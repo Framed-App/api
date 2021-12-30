@@ -20,7 +20,8 @@ async function handleRequest(request) {
 		'/get-location': handleGetLocation,
 		'/update-version': handleUpdateVersion,
 		'/latest-version': handleLatestVersion,
-		'/latest-download': handleLatestDownload
+		'/latest-download': handleLatestDownload,
+		'/clear-cache': handleClearCache
 	};
 
 	if (Object.keys(routes).includes(path)) {
@@ -82,6 +83,7 @@ async function handleLatestVersion(request) {
 
 	var branch = allVersions[version];
 	var latestVersion = null;
+	var betaHasNewerStable = false;
 
 	switch (branch) {
 		case 'stable':
@@ -91,6 +93,9 @@ async function handleLatestVersion(request) {
 		case 'beta':
 			// eslint-disable-next-line no-undef
 			latestVersion = await FRAMEDKV.get('latest-beta');
+			if (allVersions[Object.keys(allVersions)[Object.keys(allVersions).length - 1]] === 'stable') {
+				betaHasNewerStable = true;
+			}
 			break;
 	}
 
@@ -98,7 +103,8 @@ async function handleLatestVersion(request) {
 		success: true,
 		message: latestVersion,
 		branch,
-		newer: latestVersion > version
+		newer: latestVersion > version,
+		betaHasNewerStable
 	}), {
 		headers: {
 			'content-type': 'application/json;charset=UTF-8'
@@ -238,4 +244,34 @@ async function handleLatestDownload(request) {
 	}
 
 	return response;
+}
+
+function handleClearCache(request) {
+	if (request.method !== 'POST') {
+		return createErrorResponse('This route only supports POST', 405);
+	}
+
+	if (!getParameterByName('key', request.url)) {
+		return createErrorResponse('Key value is required', 403);
+	}
+
+	// eslint-disable-next-line no-undef
+	if (getParameterByName('key', request.url) !== SECRET_KEY) {
+		return createErrorResponse('Invalid key', 403);
+	}
+
+	const url = new URL(request.url);
+	const CACHE_URL = `https://${url.hostname}/download-version`;
+	const cache = caches.default;
+
+	cache.delete(CACHE_URL);
+
+	return new Response(JSON.stringify({
+		success: true,
+		message: 'Cache cleared'
+	}), {
+		headers: {
+			'content-type': 'application/json;charset=UTF-8'
+		}
+	});
 }

@@ -1,0 +1,6 @@
+name = "framed-api"
+type = "javascript"
+account_id = "88d4f9389b8cb033c8263228a517d451"
+zone_id = "e26eaf207678247b36fc4e322c276f01"
+compatibility_date = "2021-12-30"
+route = "cf-api.framed-app.com/*"
