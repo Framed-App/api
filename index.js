@@ -1,8 +1,10 @@
+// eslint-disable-next-line no-undef
 addEventListener('fetch', event => {
 	event.respondWith(handleRequest(event));
 });
 
 function createErrorResponse(message, status = 400) {
+	// eslint-disable-next-line no-undef
 	return new Response(JSON.stringify({
 		success: false,
 		message
@@ -39,6 +41,7 @@ async function handleGetLocation(request) {
 	data.city = request.cf.city;
 	data.continent = request.cf.continent;
 
+	// eslint-disable-next-line no-undef
 	return new Response(JSON.stringify(data), {
 		headers: {
 			'content-type': 'application/json;charset=UTF-8'
@@ -101,6 +104,7 @@ async function handleLatestVersion(request) {
 			break;
 	}
 
+	// eslint-disable-next-line no-undef
 	return new Response(JSON.stringify({
 		success: true,
 		message: latestVersion,
@@ -175,10 +179,12 @@ async function handleUpdateVersion(request) {
 
 	const url = new URL(request.url);
 	const CACHE_URL = `https://${url.hostname}/download-version`;
+	// eslint-disable-next-line no-undef
 	const cache = caches.default;
 
 	cache.delete(CACHE_URL);
 
+	// eslint-disable-next-line no-undef
 	return new Response(JSON.stringify({
 		success: true,
 		message: 'Version updated'
@@ -192,6 +198,7 @@ async function handleUpdateVersion(request) {
 async function handleLatestDownload(request, event) {
 	const url = new URL(request.url);
 	const CACHE_URL = `https://${url.hostname}/download-version`;
+	// eslint-disable-next-line no-undef
 	const cache = caches.default;
 
 	let response = await cache.match(CACHE_URL);
@@ -226,6 +233,7 @@ async function handleLatestDownload(request, event) {
 
 		var returnVersion = branchVersions[useBranch][branchVersions[useBranch].length - 1];
 
+		// eslint-disable-next-line no-undef
 		response = new Response(JSON.stringify({
 			success: returnVersion ? true : false,
 			version: returnVersion,
@@ -243,7 +251,7 @@ async function handleLatestDownload(request, event) {
 	return response;
 }
 
-function handleClearCache(request) {
+async function handleClearCache(request) {
 	if (request.method !== 'POST') {
 		return createErrorResponse('This route only supports POST', 405);
 	}
@@ -257,18 +265,30 @@ function handleClearCache(request) {
 		return createErrorResponse('Invalid key', 403);
 	}
 
-	const url = new URL(request.url);
-	const CACHE_URL = `https://${url.hostname}/download-version`;
-	const cache = caches.default;
+	// cache.delete() works per datacenter, which is not suitable for cache invalidation
+	// eslint-disable-next-line no-undef
+	var resp = await fetch('https://api.cloudflare.com/client/v4/zones/e26eaf207678247b36fc4e322c276f01/purge_cache', {
+		headers: {
+			// eslint-disable-next-line no-undef
+			'X-Auth-Email': CF_AUTH_EMAIL,
+			// eslint-disable-next-line no-undef
+			'X-Auth-Key': CF_AUTH_KEY,
+			'Content-Type': 'application/json'
+		},
+		body: {
+			purge_everything: true
+		}
+	});
 
-	cache.delete(CACHE_URL);
+	return resp;
 
-	return new Response(JSON.stringify({
+	// eslint-disable-next-line no-undef
+	/*return new Response(JSON.stringify({
 		success: true,
 		message: 'Cache cleared'
 	}), {
 		headers: {
 			'content-type': 'application/json;charset=UTF-8'
 		}
-	});
+	});*/
 }
