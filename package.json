@@ -1,0 +1,19 @@
+{
+  "name": "framed-api",
+  "version": "1.0.0",
+  "description": "API built on Cloudflare Workers which provides Framed with the user's continent (used for determining which Twitch ingest servers to ping), and the latest version (to show the user when an update is available).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Framed-App/api.git"
+  },
+  "author": "TrueWinter",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Framed-App/api/issues"
+  },
+  "homepage": "https://github.com/Framed-App/api#readme"
+}
