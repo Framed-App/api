@@ -60,7 +60,7 @@ function getParameterByName(name, url) {
 	return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-async function handleLatestVersion(request) {
+async function handleLatestVersion(request, event) {
 	if (!getParameterByName('version', request.url)) {
 		return createErrorResponse('Version is required');
 	}
@@ -124,6 +124,8 @@ async function handleLatestVersion(request) {
 				'content-type': 'application/json;charset=UTF-8'
 			}
 		});
+
+		event.waitUntil(cache.put(CACHE_URL, response.clone()));
 	}
 
 	return response;
