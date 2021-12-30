@@ -268,6 +268,7 @@ async function handleClearCache(request) {
 	// cache.delete() works per datacenter, which is not suitable for cache invalidation
 	// eslint-disable-next-line no-undef
 	var resp = await fetch('https://api.cloudflare.com/client/v4/zones/e26eaf207678247b36fc4e322c276f01/purge_cache', {
+		method: 'POST',
 		headers: {
 			// eslint-disable-next-line no-undef
 			'X-Auth-Email': CF_AUTH_EMAIL,
