@@ -97,17 +97,34 @@ async function handleLatestVersion(request, event) {
 		var latestVersion = null;
 		var betaHasNewerStable = false;
 
+		var stableVersions = [];
+		var betaVersions = [];
+
+		for (var v in allVersions) {
+			switch (allVersions[v]) {
+				case 'stable':
+					stableVersions.push(v);
+					break;
+				case 'beta':
+					betaVersions.push(v);
+					break;
+			}
+		}
+
+		// Objects aren't guaranteed to be sorted - https://stackoverflow.com/a/5467142
+		stableVersions.sort();
+		betaVersions.sort();
+
 		switch (branch) {
 			case 'stable':
-				// eslint-disable-next-line no-undef
-				latestVersion = await FRAMEDKV.get('latest-stable');
+				latestVersion = stableVersions[stableVersions.length - 1];
 				break;
 			case 'beta':
-				// eslint-disable-next-line no-undef
-				latestVersion = await FRAMEDKV.get('latest-beta');
-				if (allVersions[Object.keys(allVersions)[Object.keys(allVersions).length - 1]] === 'stable') {
+
+				latestVersion = betaVersions[betaVersions.length - 1];
+				if (stableVersions[stableVersions.length - 1] > latestVersion) {
 					betaHasNewerStable = true;
-					latestVersion = Object.keys(allVersions)[Object.keys(allVersions).length - 1];
+					latestVersion = stableVersions[stableVersions.length - 1];
 				}
 				break;
 		}
@@ -178,17 +195,6 @@ async function handleUpdateVersion(request, event) {
 
 	// eslint-disable-next-line no-undef
 	await FRAMEDKV.put('all-versions', JSON.stringify(allVersions));
-
-	switch (branch) {
-		case 'stable':
-			// eslint-disable-next-line no-undef
-			await FRAMEDKV.put('latest-stable', tag);
-			break;
-		case 'beta':
-			// eslint-disable-next-line no-undef
-			await FRAMEDKV.put('latest-beta', tag);
-			break;
-	}
 
 	event.waitUntil(_callCachePurgeApi());
 
