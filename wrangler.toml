@@ -3,7 +3,8 @@ account_id = "88d4f9389b8cb033c8263228a517d451"
 compatibility_date = "2021-12-30"
 route = "cf-api.framed-app.com/*"
 main = "index.js"
+node_compat = true
 
 kv_namespaces = [
-  { binding = "FRAMEDKV", id = "da9da75591da4e1dbd78e9098b9c47e1" }
+  { binding = "FRAMEDKV", id = "da9da75591da4e1dbd78e9098b9c47e1", preview_id = "622cc264d4dc475caa3f3bb0a68a4d69" }
 ]

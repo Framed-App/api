@@ -124,9 +124,11 @@ async function handleLatestVersion(request, event) {
 				break;
 			case 'beta':
 				latestVersion = getLatestVersion(betaVersions);
-				if (semver.gt(getLatestVersion(stableVersions), latestVersion)) {
+				// eslint-disable-next-line no-case-declarations
+				let latestStable = getLatestVersion(stableVersions);
+				if (latestStable && semver.gt(latestStable, latestVersion)) {
 					betaHasNewerStable = true;
-					latestVersion = stableVersions[stableVersions.length - 1];
+					latestVersion = latestStable;
 				}
 				break;
 		}
