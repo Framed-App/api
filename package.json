@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Framed-App/api/issues"
   },
-  "homepage": "https://github.com/Framed-App/api#readme"
+  "homepage": "https://github.com/Framed-App/api#readme",
+  "dependencies": {
+    "semver": "^7.5.4"
+  }
 }

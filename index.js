@@ -1,3 +1,5 @@
+const semver = require('semver');
+
 // eslint-disable-next-line no-undef
 addEventListener('fetch', event => {
 	event.respondWith(handleRequest(event));
@@ -60,6 +62,11 @@ function getParameterByName(name, url) {
 	return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
+function getLatestVersion(arr) {
+	let sortedArr = [...arr].sort((a, b) => semver.gt(a, b) ? 1 : -1);
+	return sortedArr[sortedArr.length - 1];
+}
+
 async function handleLatestVersion(request, event) {
 	if (!getParameterByName('version', request.url)) {
 		return createErrorResponse('Version is required');
@@ -111,18 +118,13 @@ async function handleLatestVersion(request, event) {
 			}
 		}
 
-		// Objects aren't guaranteed to be sorted - https://stackoverflow.com/a/5467142
-		stableVersions.sort();
-		betaVersions.sort();
-
 		switch (branch) {
 			case 'stable':
-				latestVersion = stableVersions[stableVersions.length - 1];
+				latestVersion = getLatestVersion(stableVersions);
 				break;
 			case 'beta':
-
-				latestVersion = betaVersions[betaVersions.length - 1];
-				if (stableVersions[stableVersions.length - 1] > latestVersion) {
+				latestVersion = getLatestVersion(betaVersions);
+				if (semver.gt(getLatestVersion(stableVersions), latestVersion)) {
 					betaHasNewerStable = true;
 					latestVersion = stableVersions[stableVersions.length - 1];
 				}
@@ -134,7 +136,7 @@ async function handleLatestVersion(request, event) {
 			success: true,
 			message: latestVersion,
 			branch,
-			newer: latestVersion > version,
+			newer: semver.gt(latestVersion, version),
 			betaHasNewerStable
 		}), {
 			headers: {
@@ -236,16 +238,13 @@ async function handleLatestDownload(request, event) {
 			branchVersions[allVersions[version]].push(version);
 		}
 
-		branchVersions.beta.sort();
-		branchVersions.stable.sort();
-
 		useBranch = branchVersions.stable.length > 0 ? 'stable' : 'beta';
 
 		if (branchVersions[useBranch].length === 0) {
 			return createErrorResponse('No versions exist');
 		}
 
-		var returnVersion = branchVersions[useBranch][branchVersions[useBranch].length - 1];
+		var returnVersion = getLatestVersion(branchVersions[useBranch]);
 
 		// eslint-disable-next-line no-undef
 		response = new Response(JSON.stringify({
